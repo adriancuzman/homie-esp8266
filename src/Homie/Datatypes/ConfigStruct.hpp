@@ -24,6 +24,10 @@ struct ConfigStruct {
     struct Server {
       char host[MAX_HOSTNAME_LENGTH];
       uint16_t port;
+      struct{
+        bool enabled;
+        char fingerprint[MAX_FINGERPRINT_LENGTH];
+      } ssl;
     } server;
     char baseTopic[MAX_MQTT_BASE_TOPIC_LENGTH];
     bool auth;

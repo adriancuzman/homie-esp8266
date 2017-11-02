@@ -772,6 +772,16 @@ void BootNormal::setup() {
   Interface::get().getMqttClient().onPublish(std::bind(&BootNormal::_onMqttPublish, this, std::placeholders::_1));
 
   Interface::get().getMqttClient().setServer(Interface::get().getConfig().get().mqtt.server.host, Interface::get().getConfig().get().mqtt.server.port);
+
+  #if ASYNC_TCP_SSL_ENABLED
+  Interface::get().getLogger() << "SSL is: " << Interface::get().getConfig().get().mqtt.server.ssl.enabled << endl;
+  Interface::get().getMqttClient().setSecure(Interface::get().getConfig().get().mqtt.server.ssl.enabled);
+  if (Interface::get().getConfig().get().mqtt.server.ssl.enabled) {
+    Interface::get().getLogger() << "Using fingerprint: " << Interface::get().getConfig().get().mqtt.server.ssl.fingerprint << endl;
+    Interface::get().getMqttClient().addServerFingerprint(Interface::get().getConfig().get().mqtt.server.ssl.fingerprint);
+  }
+  #endif
+
   Interface::get().getMqttClient().setMaxTopicLength(MAX_MQTT_TOPIC_LENGTH);
   _mqttClientId = std::unique_ptr<char[]>(new char[strlen(Interface::get().brand) + 1 + strlen(Interface::get().getConfig().get().deviceId) + 1]);
   strcpy(_mqttClientId.get(), Interface::get().brand);

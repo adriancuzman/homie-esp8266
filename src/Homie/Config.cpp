@@ -118,6 +118,15 @@ bool Config::load() {
     reqMqttPassword = parsedJson["mqtt"]["password"];
   }
 
+  bool reqMqttSsl = false;
+  if (parsedJson["mqtt"].as<JsonObject&>().containsKey("ssl")) {
+    reqMqttSsl = parsedJson["mqtt"]["ssl"];
+  }
+  const char* reqMqttFingerprint = "";
+  if (parsedJson["mqtt"].as<JsonObject&>().containsKey("fingerprint")) {
+    reqMqttFingerprint = parsedJson["mqtt"]["fingerprint"];
+  }
+
   bool reqOtaEnabled = false;
   if (parsedJson["ota"].as<JsonObject&>().containsKey("enabled")) {
     reqOtaEnabled = parsedJson["ota"]["enabled"];
@@ -140,6 +149,8 @@ bool Config::load() {
   _configStruct.mqtt.auth = reqMqttAuth;
   strlcpy(_configStruct.mqtt.username, reqMqttUsername, MAX_MQTT_CREDS_LENGTH);
   strlcpy(_configStruct.mqtt.password, reqMqttPassword, MAX_MQTT_CREDS_LENGTH);
+  this->_configStruct.mqtt.server.ssl.enabled = reqMqttSsl;
+  strcpy(this->_configStruct.mqtt.server.ssl.fingerprint, reqMqttFingerprint);
   _configStruct.ota.enabled = reqOtaEnabled;
 
   /* Parse the settings */
@@ -331,13 +342,17 @@ void Config::log() const {
   Interface::get().getLogger() << F("  • MQTT: ") << endl;
   Interface::get().getLogger() << F("    ◦ Host: ") << _configStruct.mqtt.server.host << endl;
   Interface::get().getLogger() << F("    ◦ Port: ") << _configStruct.mqtt.server.port << endl;
+  Interface::get().getLogger() << F("    ◦ SSL enabled: ") << (_configStruct.mqtt.server.ssl.enabled ? "true" : "false") << endl;
+  if (_configStruct.mqtt.server.ssl.enabled){
+    Interface::get().getLogger() << F("    ◦ Fingerprint: ") << _configStruct.mqtt.server.ssl.fingerprint << endl;
+  }
   Interface::get().getLogger() << F("    ◦ Base topic: ") << _configStruct.mqtt.baseTopic << endl;
   Interface::get().getLogger() << F("    ◦ Auth? ") << (_configStruct.mqtt.auth ? F("yes") : F("no")) << endl;
   if (_configStruct.mqtt.auth) {
     Interface::get().getLogger() << F("    ◦ Username: ") << _configStruct.mqtt.username << endl;
     Interface::get().getLogger() << F("    ◦ Password not shown") << endl;
   }
-
+ 
   Interface::get().getLogger() << F("  • OTA: ") << endl;
   Interface::get().getLogger() << F("    ◦ Enabled? ") << (_configStruct.ota.enabled ? F("yes") : F("no")) << endl;
 
